@@ -1,18 +1,29 @@
 import sys
 import argparse
 
+GREEN = '\033[92m'
+END = '\033[0m'
+
 def myfind(pattern, string, color):
     count = 0
-    for i in range(len(string)):
+    result = ''
+    index = 0
+    while index < len(string):
         for j in range(len(pattern)):
-            if string[i+j] != pattern[j]:
+            if string[index+j] != pattern[j]:
+                result += string[index]
                 break
             elif j == len(pattern) - 1:
                if not color:
-                   return 1
+                   return string
                else:
                    count += 1
-    return count
+                   result += GREEN + pattern + END
+                   index += j
+        index += 1
+    if count == 0:
+        result = ''
+    return result
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Find occurrences of a pattern in a file.")
@@ -24,6 +35,6 @@ if __name__ == '__main__':
     f = args.filename
     lines = f.readlines()
     for line in lines:
-        if myfind(pattern, line, args.color):
-            print line.strip()
-
+        result = myfind(pattern, line, args.color)
+        if len(result) > 0:
+            print result.strip()
