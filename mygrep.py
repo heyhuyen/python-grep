@@ -1,5 +1,6 @@
 import sys
 import argparse
+import pdb
 
 GREEN = '\033[92m'
 END = '\033[0m'
@@ -12,14 +13,14 @@ def myfind(pattern, string, color):
         for j in range(len(pattern)):
             if string[index+j] != pattern[j]:
                 result += string[index]
-                break
-            elif j == len(pattern) - 1:
+                break   # pattern broke
+            elif j == len(pattern) - 1: # pattern match
                if not color:
-                   return string
+                   return string # found first match, stop search
                else:
                    count += 1
                    result += GREEN + pattern + END
-                   index += j
+                   index += j   # jump ahead
         index += 1
     if count == 0:
         result = ''
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Find occurrences of a pattern in a file.")
     parser.add_argument('pattern', metavar="PATTERN", type=str, help="the pattern to find")
     parser.add_argument('filename', metavar="FILENAME", type=argparse.FileType('r'), nargs="?", default=sys.stdin, help="the file to search")
-    parser.add_argument('--color', type=bool, nargs="?", const=True, help="highlight pattern in output")
+    parser.add_argument('--color', action='store_true', help="highlight pattern in output")
 
     # unpack args
     args = parser.parse_args()
