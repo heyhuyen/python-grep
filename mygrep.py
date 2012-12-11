@@ -5,43 +5,54 @@ import pdb
 GREEN = '\033[92m'
 END = '\033[0m'
 
-def myfind(pattern, string, color):
-    count = 0
-    result = ''
-    index = 0
-    while index < len(string):
+# plain vanilla version
+# returns index of first match
+# -1 if not found
+def plainfind(pattern, string):
+    for i in range(len(string)):
         for j in range(len(pattern)):
-            if string[index+j] != pattern[j]:
-                result += string[index]
-                break   # pattern broke
-            elif j == len(pattern) - 1: # pattern match
-               if not color:
-                   return string # found first match, stop search
-               else:
-                   count += 1
-                   result += GREEN + pattern + END
-                   index += j   # jump ahead
-        index += 1
-    if count == 0:
-        result = ''
+            if string[i+j] != pattern[j]:
+                break
+            elif j == len(pattern) - 1:
+                return i
+    return -1
+
+# adds color
+def colorfind(pattern, string):
+    result = ''
+    index = plainfind(pattern, string)
+    if index == -1:
+        return result
+    while index != -1:
+        result += string[:index]
+        result += GREEN + pattern + END
+        string = string[index + len(pattern):]
+        index = plainfind(pattern, string)
+    result += string
     return result
 
 if __name__ == '__main__':
     # set up argparse argument parser
-    parser = argparse.ArgumentParser(description="Find occurrences of a pattern in a file.")
-    parser.add_argument('pattern', metavar="PATTERN", type=str, help="the pattern to find")
-    parser.add_argument('filename', metavar="FILENAME", type=argparse.FileType('r'), nargs="?", default=sys.stdin, help="the file to search")
+    parser = argparse.ArgumentParser(description="Find occurrences of a pattern in a text.")
+    parser.add_argument('pattern', type=str, help="the pattern to find")
+    parser.add_argument('text', type=argparse.FileType('r'), nargs="?", default=sys.stdin, help="the text to search")
     parser.add_argument('--color', action='store_true', help="highlight pattern in output")
 
     # unpack args
     args = parser.parse_args()
     pattern = args.pattern
-    f = args.filename
+    f = args.text
 
     # read lines
     line = f.readline()
     while line:
-        result = myfind(pattern, line, args.color)
-        if len(result) > 0:
-            print result.strip()
+        if args.color:
+            result = colorfind(pattern, line)
+            if len(result) > 0:
+                print result.strip()
+        else:
+            result = plainfind(pattern, line)
+            if result != -1:
+                print line.strip()
         line = f.readline()
+    f.close()
