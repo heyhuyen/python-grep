@@ -8,7 +8,10 @@ END = '\033[0m'
 # plain vanilla version
 # returns index of first match
 # -1 if not found
-def plainfind(pattern, string):
+def plainfind(pattern, string, ignore):
+    if ignore:
+        pattern = pattern.lower()
+        string = string.lower()
     for i in range(len(string)):
         for j in range(len(pattern)):
             if string[i+j] != pattern[j]:
@@ -18,16 +21,16 @@ def plainfind(pattern, string):
     return -1
 
 # adds color
-def colorfind(pattern, string):
+def colorfind(pattern, string, ignore):
     result = ''
-    index = plainfind(pattern, string)
+    index = plainfind(pattern, string, ignore)
     if index == -1:
         return result
     while index != -1:
         result += string[:index]
-        result += GREEN + pattern + END
+        result += GREEN + string[index:index + len(pattern)] + END
         string = string[index + len(pattern):]
-        index = plainfind(pattern, string)
+        index = plainfind(pattern, string, ignore)
     result += string
     return result
 
@@ -37,6 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('pattern', type=str, help="the pattern to find")
     parser.add_argument('text', type=argparse.FileType('r'), nargs="?", default=sys.stdin, help="the text to search")
     parser.add_argument('--color', action='store_true', help="highlight pattern in output")
+    parser.add_argument('--ignore-case', action='store_true', help='ignore case in serach')
 
     # unpack args
     args = parser.parse_args()
@@ -47,11 +51,11 @@ if __name__ == '__main__':
     line = f.readline()
     while line:
         if args.color:
-            result = colorfind(pattern, line)
+            result = colorfind(pattern, line, args.ignore_case)
             if len(result) > 0:
                 print result.strip()
         else:
-            result = plainfind(pattern, line)
+            result = plainfind(pattern, line, args.ignore_case)
             if result != -1:
                 print line.strip()
         line = f.readline()
