@@ -3,7 +3,8 @@ import fileinput
 from argparse import ArgumentParser, FileType
 import pdb
 
-GREEN = '\033[92m'
+GREEN = '\033[32m'
+PRETTY_GREEN = '\033[92m'
 END = '\033[0m'
 
 def index_find(pattern, string):
@@ -27,34 +28,42 @@ def color_find(pattern, string, find):
 
     while index != -1:
         result += string[:index]
-        result += GREEN + string[index:index + len(pattern)] + END
+        result += PRETTY_GREEN + string[index:index + len(pattern)] + END
         string = string[index + len(pattern):]
         index = find(pattern, string)
 
     return result if result == '' else result + string
 
-def print_result(result, textname, lineno):
-    if len(texts) > 1:  # replace this check, texts not in local scope
-        if textname == '<stdin>':
-            textname = '(standard input)'
-        sys.stdout.write('%s:' % textname)
-    if lineno > 0:
+def print_result(result, no_header, header, lineno):
+    """Print found result to standard output."""
+    if not no_header:
+        sys.stdout.write('%s:' % (header if header != '<stdin>' else '(standard input)'))
+    if lineno:
         sys.stdout.write('%d:' % lineno)
     sys.stdout.write(result)
 
-if __name__ == '__main__':
-    # set up argparse argument parser
-    parser = ArgumentParser(description="Find occurrences of a pattern in lines of text(s).")
-    parser.add_argument('pattern', type=str, help="The pattern to find.")
-    parser.add_argument('files', metavar="FILES", type=FileType('r'), nargs="*", help="the files(s) to search")
-    parser.add_argument('--color', action='store_true', help="Highlight pattern in output.")
-    parser.add_argument('--ignore-case', action='store_true', help='Ignore case in serach.')
-    parser.add_argument('--line-number', action='store_true', help='Print line numbers. Indexed beginning at 1.')
+def setup_parser():
+    parser = ArgumentParser(description='Find occurrences of a pattern in lines of file(s).', add_help=False)
+    parser.add_argument('--help', action='help', help='show this help message and exit')
+    parser.add_argument('pattern', type=str, help='the pattern to find')
+    parser.add_argument('files', metavar='FILES', type=FileType('r'), nargs='*', default=[sys.stdin], help='the files(s) to search')
+    parser.add_argument('--color', '--colour', action='store_true', help='highlight pattern in output')
+    parser.add_argument('-i', '--ignore-case', action='store_true', help='ignore case in search')
+    parser.add_argument('-n', '--line-number', action='store_true', help='print line numbers, indexed beginning at 1')
+    parser.add_argument('-h', '--no-filename', action='store_true', help='print output without filename headers')
+    return parser
 
-    # unpack args
+if __name__ == '__main__':
+    # set up argparse argument parser and get args
+    parser = setup_parser()
     args = parser.parse_args()
     pattern = args.pattern
     texts = args.files
+
+    # adjust no_filename
+    if not args.no_filename:
+        if len(texts) == 1:
+            args.no_filename = True
 
     # assign find fn
     find = index_find
@@ -63,12 +72,12 @@ if __name__ == '__main__':
 
     # loop over files
     for text in texts:
-        # read lines of a text
+        # setup for reading lines
         line = text.readline()
         lineno = 0 # counter for line number option
+        # read lines of a text
         while line:
-            # ugly line number chunk
-            if args.line_number:
+            if args.line_number: # ugly lineno chunk
                 lineno += 1
 
             if args.color:
@@ -79,7 +88,7 @@ if __name__ == '__main__':
 
             # print to stdout and read next line
             if len(result) > 0:
-                print_result(result, text.name, lineno)
+                print_result(result, args.no_filename, text.name, lineno)
             line = text.readline()
 
         text.close()
