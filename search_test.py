@@ -1,5 +1,7 @@
+import cProfile
 import sys, os
 from argparse import ArgumentParser, FileType
+from boyer_moore import bm_find
 
 GREEN = '\033[32m'
 PRETTY_GREEN = '\033[92m'
@@ -72,11 +74,13 @@ def main():
     pattern = args.pattern
 
     # assign find fn
-    find = index_find
+    #find = index_find
+    find = bm_find
 
     # what to do with files and dirs
     files = [f if f!= '-' else '(standard input)' for f in args.files]
     grep_files(files, pattern, find, args.recursive, args.color)
 
 if __name__ == '__main__':
-    main()
+    #main()
+    cProfile.run('main()')
