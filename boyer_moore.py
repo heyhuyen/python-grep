@@ -7,12 +7,11 @@ def occ(word, char):
 def shift(word, char):
     return len(word) - 1 - occ(word[:-1], char)
 
-def preprocess(pattern, string):
-    bad = set(list(string))
+def preprocess(pattern):
+    bad = set(list(pattern))
     return {ch: shift(pattern, ch) for ch in bad}
 
-def bm_find(pattern, string):
-    shift_dict = preprocess(pattern, string)
+def bm_find(pattern, string, shifts):
     index = len(pattern) - 1
     pindices = range(len(pattern))
     pindices.reverse()
@@ -20,9 +19,13 @@ def bm_find(pattern, string):
     while index < len(string) - 1:
         sindices = range(index - len(pattern) + 1, index + 1)
         for pindex in pindices:
-            if string[sindices[pindex]] != pattern[pindex]:
+            str_char = string[sindices[pindex]]
+            if str_char != pattern[pindex]:
                 # non match
-                index += shift_dict[string[sindices[pindex]]]
+                if str_char in shifts:
+                    index += shifts[string[sindices[pindex]]]
+                else:
+                    index += len(pattern)
                 break
             elif pindex == 0:
                 return index - len(pattern) + 1
