@@ -42,7 +42,7 @@ def grep_file(filename, pattern, find, color, shifts):
 
         # print to stdout and read next line
         if len(result) > 0:
-            sys.stdout.write('%s:%s' % (filename, result))
+            sys.stdout.write('%s' % (result))
         line = text.readline()
 
     text.close()
@@ -84,5 +84,5 @@ def main():
     grep_files(files, pattern, find, args.recursive, args.color, shifts)
 
 if __name__ == '__main__':
-    #main()
-    cProfile.run('main()')
+    main()
+    #cProfile.run('main()')

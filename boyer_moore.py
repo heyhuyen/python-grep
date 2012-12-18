@@ -1,8 +1,17 @@
+def rightfind(string, char):
+    indices = range(len(string))
+    indices.reverse()
+    for i in indices:
+        if string[i] == char:
+            return i 
+    return -1
+
 def occ(word, char):
     if char not in word:
         return -1
 
-    return word.rfind(char)
+    #return word.rfind(char)
+    return rightfind(word, char)
 
 def shift(word, char):
     return len(word) - 1 - occ(word[:-1], char)
