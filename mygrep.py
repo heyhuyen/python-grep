@@ -1,12 +1,17 @@
 import sys, os
 from argparse import ArgumentParser, FileType
+#------------------------------------------------------------------------------
 
 GREEN = '\033[32m'
 PRETTY_GREEN = '\033[92m'
 END_COLOR = '\033[0m'
 
-def index_find(pattern, string):
+def index_find(pattern, string, ignore_case):
     """Find index of pattern match in string. Returns -1 if not found."""
+    if ignore_case:
+        pattern = pattern.lower()
+        string = string.lower()
+
     for i in range(len(string)):
         for j in range(len(pattern)):
             if string[i+j] != pattern[j]:
@@ -15,28 +20,16 @@ def index_find(pattern, string):
                 return i
     return -1
 
-def ignore_case_find(pattern, string):
-    """Look for pattern in string, ignoring case."""
-    return index_find(pattern.lower(), string.lower())
-
-def find(pattern, string, ignore_case):
-    """Find the pattern in the string. Return -1 if not found."""
-    if ignore_case:
-        return ignore_case_find(pattern, string)
-    else:
-        return index_find(pattern, string)
-
 def color_find(pattern, string, ignore_case):
     """Find all matches of pattern in string. Returns colored string, or empty string if not found."""
     result = ''
-    index = find(pattern, string, ignore_case)
+    index = index_find(pattern, string, ignore_case)
 
     while index != -1:
         result += string[:index]
-#------------------------------------------------------------------------------
         result += PRETTY_GREEN + string[index:index + len(pattern)] + END_COLOR
         string = string[index + len(pattern):]
-        index = find(pattern, string, ignore_case)
+        index = index_find(pattern, string, ignore_case)
 
     return result if result == '' else result + string
 
@@ -45,7 +38,7 @@ def get_match(pattern, string, color, ignore_case):
     if color:
         return color_find(pattern, string, ignore_case)
     else:
-        index = find(pattern, string, ignore_case)
+        index = index_find(pattern, string, ignore_case)
         return string if index != -1 else ''
 
 def print_result(print_header, header, print_lineno, lineno, print_line, line):
