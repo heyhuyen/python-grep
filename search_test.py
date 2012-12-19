@@ -1,43 +1,47 @@
 import cProfile
 import sys, os
 from argparse import ArgumentParser, FileType
-from boyer_moore import bm_find, preprocess
+from boyer_moore import BoyerMooreSearch
 
 GREEN = '\033[32m'
 PRETTY_GREEN = '\033[92m'
 END = '\033[0m'
 
-def index_find(pattern, string, shifts):
-    """Find first occurence of pattern in string."""
-    for i in range(len(string)):
-        for j in range(len(pattern)):
-            if string[i+j] != pattern[j]:
-                break
-            elif j == len(pattern) - 1:
-                return i
-    return -1
+class NaiveSearch:
+    def __init__(self, pattern):
+        self.pattern = pattern
 
-def color_find(pattern, string, find, shifts):
+    def search(self, string):
+        """Find first occurence of pattern in string."""
+        for i in range(len(string)):
+            for j in range(len(self.pattern)):
+                if string[i+j] != self.pattern[j]:
+                    break
+                elif j == len(self.pattern) - 1:
+                    return i
+        return -1
+
+def color_find(string, searcher):
     """Find and color all occurences of pattern in string."""
     result = ''
-    index = find(pattern, string, shifts)
+    index = searcher.search(string)
 
     while index != -1:
         result += string[:index]
-        result += PRETTY_GREEN + string[index:index + len(pattern)] + END
-        string = string[index + len(pattern):]
-        index = find(pattern, string, shifts)
+        result += PRETTY_GREEN + string[index:index + len(searcher.pattern)] + END
+        string = string[index + len(searcher.pattern):]
+        index = searcher.search(string)
 
     return result if result == '' else result + string
 
-def grep_file(filename, pattern, find, color, shifts):
+def grep_file(filename, searcher, color):
     text = sys.stdin if filename == '(standard input)' else open(filename, 'r')
     line = text.readline()
     while line:
         if color:
-            result = color_find(pattern, line, find, shifts)
+            result = color_find(line, searcher)
         else:
-            index = find(pattern, line, shifts)
+            index = searcher.search(line)
             result = line if index != -1 else ''
 
         # print to stdout and read next line
@@ -47,14 +51,14 @@ def grep_file(filename, pattern, find, color, shifts):
 
     text.close()
 
-def grep_files(paths, pattern, find, recurse, color, shifts):
+def grep_files(paths, searcher, recurse, color):
     for path in paths:
         if os.path.isfile(path) or path == '(standard input)':
-            grep_file(path, pattern, find, color, shifts)
+            grep_file(path, searcher, color)
         else:
             if recurse:
                 more_paths = [path + '/' + child for child in os.listdir(path)]
-                grep_files(more_paths, pattern, find, recurse, color, shifts)
+                grep_files(more_paths, searcher, recurse, color)
             else:
                 sys.stdout.write('grep: %s: Is a directory\n' % path)
 
@@ -73,16 +77,15 @@ def main():
     args = parser.parse_args()
     pattern = args.pattern
 
-    # assign find fn
-    #find = index_find
-    #shifts = None
-    shifts = preprocess(pattern)
-    find = bm_find
+    # assign search object
+    searcher = NaiveSearch(pattern)
+    # find = naive.search
+    #searcher = BoyerMooreSearch(pattern)
 
     # what to do with files and dirs
     files = [f if f!= '-' else '(standard input)' for f in args.files]
-    grep_files(files, pattern, find, args.recursive, args.color, shifts)
+    grep_files(files, searcher, args.recursive, args.color)
 
 if __name__ == '__main__':
-    main()
-    #cProfile.run('main()')
+    #main()
+    cProfile.run('main()')
