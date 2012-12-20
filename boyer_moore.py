@@ -1,4 +1,22 @@
-import pdb
+
+class NaiveSearch:
+    def __init__(self, pattern):
+        self.pattern = pattern
+
+    def search(self, string):
+        """Find first occurence of pattern in string."""
+        len_pat = len(self.pattern)
+        len_str = len(string)
+        i = 0
+        while i < len_str:
+            j = 0
+            while j < len_pat and self.pattern[j] == string[i+j]:
+                j += 1
+            if j == len_pat:
+                return i
+            i += 1
+        return -1
+
 
 class BoyerMooreSearch:
     """Search using Boyer-Moore algorithm."""
@@ -7,25 +25,10 @@ class BoyerMooreSearch:
         self.bad_chars = self.preprocess_bad()
         self.good_suffixes = self.preprocess_good()
 
-    def occurrence(self, string, char):
-        """Find right most occurrence of char in word. Returns -1 if not found."""
-#        indices = range(len(string))
-#        indices.reverse()
-#        for i in indices:
-#            if string[i] == char:
-#                return i
-#        return -1
-
-    def bad_char_shift(self, char):
-        """Calculate distance to shift pattern for mismatched character found in pattern."""
-        return len(self.pattern) - 1 - self.occurrence(self.pattern[:-1], char)
-
     def preprocess_bad(self):
         """Calculate shifts for characters in pattern."""
-        #chars = set(list(self.pattern))
-        #return {char: self.bad_char_shift(char) for char in chars}
         occ = {}
-        for j in range(len(self.pattern)):
+        for j in xrange(len(self.pattern)):
             char = self.pattern[j]
             occ[char] = j
         return occ
@@ -55,7 +58,14 @@ class BoyerMooreSearch:
             border_i -= 1
             f[suffix_i] = border_i
 
-        return (f, s)
+        #return (f, s)
+        j = f[0]
+        for index, shift in enumerate(s):
+            if shift == 0:
+                s[index] = j
+            if shift == j and j < len(f):
+                j = f[j]
+        return s
 
     def partial_suffix_shifts(self, f, s):
         """Calculate shifts for partially mismatched suffixes which occur at beginning of pattern."""
@@ -69,8 +79,7 @@ class BoyerMooreSearch:
 
     def preprocess_good(self):
         """Calculate shifts for suffixes in pattern."""
-        f, s = self.whole_suffix_shifts()
-        return self.partial_suffix_shifts(f, s)
+        return self.whole_suffix_shifts()
 
     def max_shift(self, bad_char, suffix):
         # return max shift between bad_chars and good_suffixes 
@@ -83,9 +92,11 @@ class BoyerMooreSearch:
 
     def search(self, string):
         """Boyer Moore search algorithm."""
+        len_str = len(string)
+        len_pat = len(self.pattern)
         i = 0
-        while i <= (len(string) - len(self.pattern)):
-            j = len(self.pattern) - 1 #last index of pattern
+        while i <= len_str - len_pat:
+            j = len_pat - 1 #last index of pattern
             while j >= 0 and self.pattern[j] == string[i+j]:
                 j -= 1
             if j < 0:
@@ -109,7 +120,7 @@ class BoyerMooreSearch:
 #                if string[index+pindex] in self.bad_chars:
 #                    skip = self.bad_chars[string[index+pindex]]
 #                else:
-#                    skip = len(self.pattern)
+#                    skip = len_pat
 #                index += skip
 #        return -1
 

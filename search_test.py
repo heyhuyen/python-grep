@@ -1,58 +1,11 @@
 import cProfile
 import sys, os
 from argparse import ArgumentParser, FileType
-from boyer_moore import BoyerMooreSearch
+from boyer_moore import BoyerMooreSearch, NaiveSearch
 
 GREEN = '\033[32m'
 PRETTY_GREEN = '\033[92m'
 END = '\033[0m'
-
-class NaiveSearch:
-    def __init__(self, pattern):
-        self.pattern = pattern
-
-    def search(self, string):
-        """Find first occurence of pattern in string."""
-        len_pat = len(self.pattern)
-        len_str = len(string)
-        i = 0
-        while i < len_str:
-            j = 0
-            while j < len_pat and self.pattern[j] == string[i+j]:
-                j += 1
-            if j == len_pat:
-                return i
-            i += 1
-        return -1
-
-
-#        i = 0
-#        while i < len(string):
-#            j = 0
-#            while j < len(self.pattern) and self.pattern[j] == string[i+j]:
-#                j += 1
-#            if j == len(self.pattern):
-#                return i
-#            i += 1
-#        return -1
-
-        #for i in xrange(len(string)):
-        #    for j in xrange(len(self.pattern)):
-        #        if string[i+j] != self.pattern[j]:
-        #            break
-        #        elif j == len(self.pattern) - 1:
-        #            return i
-        #return -1
-
-       # len_pat = len(self.pattern)
-       # len_str = len(string)
-       # for i in xrange(len_str):
-       #     for j in xrange(len_pat):
-       #         if string[i+j] != self.pattern[j]:
-       #             break
-       #         elif j == len_pat - 1:
-       #             return i
-       # return -1
 
 def color_find(string, searcher):
     """Find and color all occurences of pattern in string."""
@@ -102,6 +55,7 @@ def setup_parser():
     parser.add_argument('files', metavar='FILES', nargs='*', default=['-'], help='the files(s) to search')
     parser.add_argument('--color', '--colour', action='store_true', help='highlight pattern in output')
     parser.add_argument('-R', '-r', '--recursive', action='store_true', help='recursively search directories')
+    parser.add_argument('-b', '--boyer-moore', action='store_true', help='search with boyer-moore algorithm')
     return parser
 
 def main():
@@ -110,15 +64,15 @@ def main():
     args = parser.parse_args()
     pattern = args.pattern
 
-    # assign search object
-    #searcher = NaiveSearch(pattern)
-    # find = naive.search
-    searcher = BoyerMooreSearch(pattern)
+    if args.boyer_moore:
+        searcher = BoyerMooreSearch(pattern)
+    else:
+        searcher = NaiveSearch(pattern)
 
     # what to do with files and dirs
     files = [f if f!= '-' else '(standard input)' for f in args.files]
     grep_files(files, searcher, args.recursive, args.color)
 
 if __name__ == '__main__':
-    #main()
-    cProfile.run('main()')
+    main()
+    #cProfile.run('main()')
