@@ -13,13 +13,46 @@ class NaiveSearch:
 
     def search(self, string):
         """Find first occurence of pattern in string."""
-        for i in range(len(string)):
-            for j in range(len(self.pattern)):
-                if string[i+j] != self.pattern[j]:
-                    break
-                elif j == len(self.pattern) - 1:
-                    return i
+        len_pat = len(self.pattern)
+        len_str = len(string)
+        i = 0
+        while i < len_str:
+            j = 0
+            while j < len_pat and self.pattern[j] == string[i+j]:
+                j += 1
+            if j == len_pat:
+                return i
+            i += 1
         return -1
+
+
+#        i = 0
+#        while i < len(string):
+#            j = 0
+#            while j < len(self.pattern) and self.pattern[j] == string[i+j]:
+#                j += 1
+#            if j == len(self.pattern):
+#                return i
+#            i += 1
+#        return -1
+
+        #for i in xrange(len(string)):
+        #    for j in xrange(len(self.pattern)):
+        #        if string[i+j] != self.pattern[j]:
+        #            break
+        #        elif j == len(self.pattern) - 1:
+        #            return i
+        #return -1
+
+       # len_pat = len(self.pattern)
+       # len_str = len(string)
+       # for i in xrange(len_str):
+       #     for j in xrange(len_pat):
+       #         if string[i+j] != self.pattern[j]:
+       #             break
+       #         elif j == len_pat - 1:
+       #             return i
+       # return -1
 
 def color_find(string, searcher):
     """Find and color all occurences of pattern in string."""
@@ -78,9 +111,9 @@ def main():
     pattern = args.pattern
 
     # assign search object
-    searcher = NaiveSearch(pattern)
+    #searcher = NaiveSearch(pattern)
     # find = naive.search
-    #searcher = BoyerMooreSearch(pattern)
+    searcher = BoyerMooreSearch(pattern)
 
     # what to do with files and dirs
     files = [f if f!= '-' else '(standard input)' for f in args.files]
